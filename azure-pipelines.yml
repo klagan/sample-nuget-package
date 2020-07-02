@@ -74,6 +74,17 @@ steps:
     arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)'
 
 - task: DotNetCoreCLI@2
+  displayName: 'dotnet pack $(buildConfiguration)'
+  inputs:
+    command: pack
+    versioningScheme: byPrereleaseNumber
+    majorVersion: '$(Major)'
+    minorVersion: '$(Minor)'
+    patchVersion: '$(Patch)'
+
+- script: ls -R
+
+- task: DotNetCoreCLI@2
   displayName: 'package build artifacts'
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/kam'))
   inputs:
