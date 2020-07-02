@@ -77,7 +77,7 @@ stages:
           arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)'
 
       - task: DotNetCoreCLI@2
-        displayName: 'package $(buildConfiguration) pre-release artefacts'
+        displayName: 'package pre-release artefacts [$(buildConfiguration)]'
         condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
         inputs:
           command: pack
@@ -88,7 +88,7 @@ stages:
           outputDir: '$(build.artifactStagingDirectory)'
 
       - task: DotNetCoreCLI@2
-        displayName: 'package $(buildConfiguration) production artefacts'
+        displayName: 'package production artefacts [$(buildConfiguration)]'
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         inputs:
           command: pack
