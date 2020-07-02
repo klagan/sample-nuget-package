@@ -102,8 +102,7 @@ steps:
   inputs:
     command: push
     searchPatternPush: '$(build.artifactStagingDirectory)/*.nupkg;!$(Build.artifactStagingDirectory)/*.tests.nupkg'
-    nuGetFeedType: internal
-    feedPublish: 'beta-feed'
+    feedPublish: 'laganlabs-it'
 
 # TODO: not compatible with linux - need to look into alternatives: SourceLink? 
 # - task: PublishSymbols@2
