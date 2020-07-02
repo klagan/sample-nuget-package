@@ -69,6 +69,7 @@ steps:
   displayName: publish build artifacts
   inputs:
     command: publish
+    projects: $(buildProjects)
     publishWebProjects: false
     arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)'
 
