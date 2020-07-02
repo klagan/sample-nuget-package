@@ -87,13 +87,13 @@ stages:
           patchVersion: '$(Patch)'
           outputDir: '$(build.artifactStagingDirectory)'
 
-      - task: DotNetCoreCLI@2
-        displayName: 'push packages to feed'
-        condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
-        inputs:
-          command: push
-          searchPatternPush: '$(build.artifactStagingDirectory)/*.nupkg;!$(Build.artifactStagingDirectory)/*.tests.nupkg'
-          feedPublish: 'examples/beta-feed'
+      # - task: DotNetCoreCLI@2
+      #   displayName: 'push packages to feed'
+      #   condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+      #   inputs:
+      #     command: push
+      #     searchPatternPush: '$(build.artifactStagingDirectory)/*.nupkg;!$(Build.artifactStagingDirectory)/*.tests.nupkg'
+      #     feedPublish: 'examples/beta-feed'
 
       - task: DotNetCoreCLI@2
         displayName: 'package $(buildConfiguration) production artefacts'
@@ -104,18 +104,23 @@ stages:
           verbosityPack: Minimal
           outputDir: '$(build.artifactStagingDirectory)'
 
-      - task: DotNetCoreCLI@2
-        displayName: 'push packages to feed'
-        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-        inputs:
-          command: push
-          searchPatternPush: '$(build.artifactStagingDirectory)/*.nupkg;!$(Build.artifactStagingDirectory)/*.tests.nupkg'
-          feedPublish: 'laganlabs-it'
+      # - task: DotNetCoreCLI@2
+      #   displayName: 'push packages to feed'
+      #   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+      #   inputs:
+      #     command: push
+      #     searchPatternPush: '$(build.artifactStagingDirectory)/*.nupkg;!$(Build.artifactStagingDirectory)/*.tests.nupkg'
+      #     feedPublish: 'laganlabs-it'
 
       - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
         - template: push-task.yml
           parameters:
             packageFeed: 'laganlabs-it'
+
+      - ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+        - template: push-task.yml
+          parameters:
+            packageFeed: 'examples/beta-feed'
 
       # TODO: not compatible with linux - need to look into alternatives: SourceLink? 
       # - task: PublishSymbols@2
