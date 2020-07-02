@@ -43,7 +43,7 @@ stages:
     vmImage: 'ubuntu-latest'
   jobs:
     - job: 'Build'
-      displayName: 'build artfefacts'
+      displayName: 'build artefacts'
       steps:
       - task: DotNetCoreCLI@2
         displayName: restore packages
