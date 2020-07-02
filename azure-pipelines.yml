@@ -103,7 +103,7 @@ steps:
     command: push
     searchPatternPush: '$(build.artifactStagingDirectory)/*.nupkg;!$(Build.artifactStagingDirectory)/*.tests.nupkg'
     #publishVstsFeed: 'beta-feed'
-    feedPublish: 'beta-feed'
+    feedPublish: 'laganlabs-it/beta-feed'
 
 # TODO: not compatible with linux - need to look into alternatives: SourceLink? 
 # - task: PublishSymbols@2
