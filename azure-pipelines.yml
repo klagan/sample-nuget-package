@@ -20,7 +20,7 @@ variables:
   symbolsArtifactName: 'Symbols_$(buildConfiguration)'  
 
 pool:
-  name: ${{ parameters.agentName }}
+  name: 'Azure Pipelines'
   vmImage: 'ubuntu-latest'  
 
 # Defines which branches will trigger a build on change
