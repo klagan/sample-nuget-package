@@ -36,78 +36,79 @@ trigger:
      - task/*
      - hotfix/*
 
-steps:
-- script: |
-   git clean -d -x -f
-  displayName: Clean Sources
-
-- script: echo $(build.buildNumber)
-  displayName: show build number
-
-- task: DotNetCoreCLI@2
-  displayName: restore packages
-  inputs:
-    command: restore
-    # selectOrConfig: config
-    # nugetConfigPath: '$(System.DefaultWorkingDirectory)/nuget.config'
-    projects: |
-      $(buildProjects)
+stages:
+- stage: 'Build'
+  pool:
+    vmImage: 'ubuntu-latest'
+  jobs:
+    - job: 'Build'
+      steps:
+      - task: DotNetCoreCLI@2
+        displayName: restore packages
+        inputs:
+          command: restore
+          # selectOrConfig: config
+          # nugetConfigPath: '$(System.DefaultWorkingDirectory)/nuget.config'
+          projects: |
+            $(buildProjects)
   
-- task: DotNetCoreCLI@2
-  displayName: build all projects
-  inputs:
-    projects: $(buildProjects)
-    packDirectory: '$(build.artifactStagingDirectory)'
-    arguments: '-c $(buildConfiguration) /p:Version=$(Build.BuildNumber)'
+      - task: DotNetCoreCLI@2
+        displayName: build all projects
+        inputs:
+          projects: $(buildProjects)
+          packDirectory: '$(build.artifactStagingDirectory)'
+          arguments: '-c $(buildConfiguration) /p:Version=$(Build.BuildNumber)'
 
-- task: DotNetCoreCLI@2
-  displayName: run test projects
-  inputs:
-    command: test
-    projects: $(testProjects)
-    publishTestResults: true
-    arguments: '--no-build -c $(buildConfiguration)'
+    - job: 'Test'
+      steps:
+      - task: DotNetCoreCLI@2
+        displayName: run test projects
+        inputs:
+          command: test
+          projects: $(testProjects)
+          publishTestResults: true
+          arguments: '--no-build -c $(buildConfiguration)'
 
-- task: DotNetCoreCLI@2
-  displayName: publish build artifacts
-  inputs:
-    command: publish
-    projects: $(buildProjects)
-    publishWebProjects: false
-    arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)'
+    - job: 'Package'
+      steps:
+      - task: DotNetCoreCLI@2
+        displayName: publish build artifacts
+        inputs:
+          command: publish
+          projects: $(buildProjects)
+          publishWebProjects: false
+          arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)'
 
-- task: DotNetCoreCLI@2
-  displayName: 'dotnet pack $(buildConfiguration)'
-  inputs:
-    command: pack
-    versioningScheme: byPrereleaseNumber
-    majorVersion: '$(Major)'
-    minorVersion: '$(Minor)'
-    patchVersion: '$(Patch)'
+      - task: DotNetCoreCLI@2
+        displayName: 'dotnet pack $(buildConfiguration)'
+        inputs:
+          command: pack
+          versioningScheme: byPrereleaseNumber
+          majorVersion: '$(Major)'
+          minorVersion: '$(Minor)'
+          patchVersion: '$(Patch)'
 
-- script: ls -R
+      - task: DotNetCoreCLI@2
+        displayName: 'package build artifacts'
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/kam'))
+        inputs:
+          command: pack
+          versioningScheme: byBuildNumber
+          verbosityPack: Minimal
+          outputDir: '$(build.artifactStagingDirectory)'
 
-- task: DotNetCoreCLI@2
-  displayName: 'package build artifacts'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/kam'))
-  inputs:
-    command: pack
-    versioningScheme: byBuildNumber
-    verbosityPack: Minimal
-    outputDir: '$(build.artifactStagingDirectory)'
+      - task: DotNetCoreCLI@2
+        displayName: 'push packages to feed'
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+        inputs:
+          command: push
+          searchPatternPush: '$(build.artifactStagingDirectory)/*.nupkg;!$(Build.artifactStagingDirectory)/*.tests.nupkg'
+          feedPublish: 'laganlabs-it'
 
-- task: DotNetCoreCLI@2
-  displayName: 'push packages to feed'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-  inputs:
-    command: push
-    searchPatternPush: '$(build.artifactStagingDirectory)/*.nupkg;!$(Build.artifactStagingDirectory)/*.tests.nupkg'
-    feedPublish: 'laganlabs-it'
-
-# TODO: not compatible with linux - need to look into alternatives: SourceLink? 
-# - task: PublishSymbols@2
-#   displayName: 'publish symbols'
-#   inputs:
-#     SymbolServerType: TeamServices
-#     SymbolsArtifactName: '$(symbolsArtifactName)'
+      # TODO: not compatible with linux - need to look into alternatives: SourceLink? 
+      # - task: PublishSymbols@2
+      #   displayName: 'publish symbols'
+      #   inputs:
+      #     SymbolServerType: TeamServices
+      #     SymbolsArtifactName: '$(symbolsArtifactName)'
 
