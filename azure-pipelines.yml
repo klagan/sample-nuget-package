@@ -1,0 +1,98 @@
+name: 1.0$(rev:.r)
+
+parameters:
+  - name: agentName
+    displayName: 'Build Agent Name'
+    type: string
+    default: 'Azure Pipelines'
+    values:
+      - 'Azure Pipelines'
+      - 'Linux Agents'
+      - 'MS Windows Agents'
+
+variables:
+  buildConfiguration: 'Release'
+  testProjects: '**/!(*.[Ii]ntegration|*.[Ss]pecification).[Tt]est.csproj' # only use the unit tests ie: not named *integration.tests*
+  buildProjects: '**/*.csproj'
+  buildPlatform: 'x64'
+  dotnetCliVersion: '3.x'
+  buildNumberFormat: '1.0$(Rev:.r)'
+  symbolsArtifactName: 'Symbols_$(buildConfiguration)'  
+
+pool:
+  name: ${{ parameters.agentName }}
+  vmImage: 'ubuntu-latest'  
+
+# Defines which branches will trigger a build on change
+trigger:
+  branches:
+    include:
+     - master
+     - feature/*
+     - develop/*
+     - task/*
+     - hotfix/*
+
+steps:
+- script: |
+   git clean -d -x -f
+  displayName: Clean Sources
+
+- script: echo $(build.buildNumber)
+  displayName: show build number
+
+- task: DotNetCoreCLI@2
+  displayName: restore packages
+  inputs:
+    command: restore
+    # selectOrConfig: config
+    # nugetConfigPath: '$(System.DefaultWorkingDirectory)/nuget.config'
+    projects: |
+      $(buildProjects)
+  
+- task: DotNetCoreCLI@2
+  displayName: build all projects
+  inputs:
+    projects: $(buildProjects)
+    packDirectory: '$(build.artifactStagingDirectory)'
+    arguments: '-c $(buildConfiguration) /p:Version=$(Build.BuildNumber)'
+
+- task: DotNetCoreCLI@2
+  displayName: run test projects
+  inputs:
+    command: test
+    projects: $(testProjects)
+    publishTestResults: true
+    arguments: '--no-build -c $(buildConfiguration)'
+
+- task: DotNetCoreCLI@2
+  displayName: publish build artifacts
+  inputs:
+    command: publish
+    publishWebProjects: false
+    arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)'
+
+- task: DotNetCoreCLI@2
+  displayName: 'package build artifacts'
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/kam'))
+  inputs:
+    command: pack
+    versioningScheme: byBuildNumber
+    verbosityPack: Minimal
+    outputDir: '$(build.artifactStagingDirectory)'
+
+- task: DotNetCoreCLI@2
+  displayName: 'push packages to feed'
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/kam'))
+  inputs:
+    command: push
+    searchPatternPush: '$(build.artifactStagingDirectory)/*.nupkg;!$(Build.artifactStagingDirectory)/*.tests.nupkg'
+    publishVstsFeed: 'beta-feed'
+
+# TODO: not compatible with linux - need to look into alternatives: SourceLink? 
+# - task: PublishSymbols@2
+#   displayName: 'publish symbols'
+#   inputs:
+#     SymbolServerType: TeamServices
+#     SymbolsArtifactName: '$(symbolsArtifactName)'
+
