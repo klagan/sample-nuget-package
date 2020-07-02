@@ -3,6 +3,9 @@ parameters:
 - name: minorVersion
 - name: patchVersion
 
+variables:
+  feedName: 'examples/beta-feed'
+
 steps:
 - task: DotNetCoreCLI@2
   displayName: 'package pre-release artefacts [$(buildConfiguration)]'
@@ -16,8 +19,8 @@ steps:
     outputDir: '$(build.artifactStagingDirectory)'
 
 - task: DotNetCoreCLI@2
-  displayName: 'push packages to feed ${{ parameters.packageFeed }}'
+  displayName: 'push packages to feed $(variables.feedName)'
   inputs:
     command: push
     searchPatternPush: '$(build.artifactStagingDirectory)/*.nupkg;!$(Build.artifactStagingDirectory)/*.tests.nupkg'
-    feedPublish: 'examples/beta-feed'
+    feedPublish: $(variables.feedName)'
