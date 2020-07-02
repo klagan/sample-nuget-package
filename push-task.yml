@@ -3,7 +3,7 @@ parameters:
 
 steps:
 - task: DotNetCoreCLI@2
-  displayName: 'push packages to feed'
+  displayName: 'push packages to feed ${{ parameters.packageFeed }}'
   inputs:
     command: push
     searchPatternPush: '$(build.artifactStagingDirectory)/*.nupkg;!$(Build.artifactStagingDirectory)/*.tests.nupkg'

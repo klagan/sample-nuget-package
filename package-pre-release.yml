@@ -1,0 +1,23 @@
+parameters:
+- name: majorVersion
+- name: minorVersion
+- name: patchVersion
+
+steps:
+- task: DotNetCoreCLI@2
+  displayName: 'package pre-release artefacts [$(buildConfiguration)]'
+  condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+  inputs:
+    command: pack
+    versioningScheme: byPrereleaseNumber
+    majorVersion: ${{ parameters.majorVersion }}
+    minorVersion: ${{ parameters.minorVersion }}
+    patchVersion: ${{ parameters.patchVersion }}
+    outputDir: '$(build.artifactStagingDirectory)'
+
+- task: DotNetCoreCLI@2
+  displayName: 'push packages to examples/beta-feed'
+  inputs:
+    command: push
+    searchPatternPush: '$(build.artifactStagingDirectory)/*.nupkg;!$(Build.artifactStagingDirectory)/*.tests.nupkg'
+    feedPublish: 'examples/beta-feed'
