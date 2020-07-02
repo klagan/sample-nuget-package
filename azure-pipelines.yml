@@ -98,7 +98,7 @@ steps:
 
 - task: DotNetCoreCLI@2
   displayName: 'push packages to feed'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/kam'))
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   inputs:
     command: push
     searchPatternPush: '$(build.artifactStagingDirectory)/*.nupkg;!$(Build.artifactStagingDirectory)/*.tests.nupkg'
