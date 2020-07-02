@@ -40,6 +40,7 @@ stages:
 - stage: 'Build'
   displayName: 'build, test, package and push'
   pool:
+    name: ${{ parameters.AgentName }}
     vmImage: 'ubuntu-latest'
   jobs:
     - job: 
@@ -77,28 +78,8 @@ stages:
           publishWebProjects: false
           arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)'
 
-      # - task: DotNetCoreCLI@2
-      #   displayName: 'package pre-release artefacts [$(buildConfiguration)]'
-      #   condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
-      #   inputs:
-      #     command: pack
-      #     versioningScheme: byPrereleaseNumber
-      #     majorVersion: '$(Major)'
-      #     minorVersion: '$(Minor)'
-      #     patchVersion: '$(Patch)'
-      #     outputDir: '$(build.artifactStagingDirectory)'
-
-      # - task: DotNetCoreCLI@2
-      #   displayName: 'package production artefacts [$(buildConfiguration)]'
-      #   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-      #   inputs:
-      #     command: pack
-      #     versioningScheme: byBuildNumber
-      #     verbosityPack: Minimal
-      #     outputDir: '$(build.artifactStagingDirectory)'
-
       - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
-        - template: ppackage-production-release.yml
+        - template: package-production-release.yml
 
       - ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
         - template: package-pre-release.yml
