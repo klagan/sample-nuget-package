@@ -114,7 +114,7 @@ stages:
         inputs:
           command: push
           searchPatternPush: '$(build.artifactStagingDirectory)/*.nupkg;!$(Build.artifactStagingDirectory)/*.tests.nupkg'
-          feedPublish: 'laganlabs-it'
+          feedPublish: 'examples/beta-feed'
 
       # TODO: not compatible with linux - need to look into alternatives: SourceLink? 
       # - task: PublishSymbols@2
