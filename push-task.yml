@@ -1,0 +1,10 @@
+parameters:
+- name: packageFeed
+
+steps:
+- task: DotNetCoreCLI@2
+  displayName: 'push packages to feed'
+  inputs:
+    command: push
+    searchPatternPush: '$(build.artifactStagingDirectory)/*.nupkg;!$(Build.artifactStagingDirectory)/*.tests.nupkg'
+    feedPublish: ${{ parameters.packageFeed }}

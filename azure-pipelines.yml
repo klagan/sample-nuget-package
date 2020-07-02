@@ -42,8 +42,7 @@ stages:
   pool:
     vmImage: 'ubuntu-latest'
   jobs:
-    - job: 'Build'
-      displayName: 'build artefacts'
+    - job: 
       steps:
       - task: DotNetCoreCLI@2
         displayName: restore packages
@@ -89,6 +88,14 @@ stages:
           outputDir: '$(build.artifactStagingDirectory)'
 
       - task: DotNetCoreCLI@2
+        displayName: 'push packages to feed'
+        condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+        inputs:
+          command: push
+          searchPatternPush: '$(build.artifactStagingDirectory)/*.nupkg;!$(Build.artifactStagingDirectory)/*.tests.nupkg'
+          feedPublish: 'examples/beta-feed'
+
+      - task: DotNetCoreCLI@2
         displayName: 'package $(buildConfiguration) production artefacts'
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         inputs:
@@ -99,10 +106,16 @@ stages:
 
       - task: DotNetCoreCLI@2
         displayName: 'push packages to feed'
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         inputs:
           command: push
           searchPatternPush: '$(build.artifactStagingDirectory)/*.nupkg;!$(Build.artifactStagingDirectory)/*.tests.nupkg'
-          feedPublish: 'examples/beta-feed'
+          feedPublish: 'laganlabs-it'
+
+      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+        - template: push-task.yml
+          parameters:
+            packageFeed: 'laganlabs-it'
 
       # TODO: not compatible with linux - need to look into alternatives: SourceLink? 
       # - task: PublishSymbols@2
