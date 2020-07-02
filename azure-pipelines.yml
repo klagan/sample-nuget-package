@@ -43,6 +43,7 @@ stages:
     vmImage: 'ubuntu-latest'
   jobs:
     - job: 
+      displayName: 'Package sample library'
       steps:
       - task: DotNetCoreCLI@2
         displayName: restore packages

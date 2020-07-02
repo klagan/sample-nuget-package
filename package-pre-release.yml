@@ -16,7 +16,7 @@ steps:
     outputDir: '$(build.artifactStagingDirectory)'
 
 - task: DotNetCoreCLI@2
-  displayName: 'push packages to feed examples/beta-feed'
+  displayName: 'push packages to examples/beta-feed'
   inputs:
     command: push
     searchPatternPush: '$(build.artifactStagingDirectory)/*.nupkg;!$(Build.artifactStagingDirectory)/*.tests.nupkg'
