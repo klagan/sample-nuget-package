@@ -85,7 +85,7 @@ stages:
 
 
     - job: 'Package'
-      displayName: 'package nuget artefacts'
+      displayName: 'package and push nuget artefacts'
       steps:
       - task: DotNetCoreCLI@2
         displayName: 'package $(buildConfiguration) pre-release artefacts'
@@ -96,6 +96,7 @@ stages:
           majorVersion: '$(Major)'
           minorVersion: '$(Minor)'
           patchVersion: '$(Patch)'
+          outputDir: '$(build.artifactStagingDirectory)'
 
       - task: DotNetCoreCLI@2
         displayName: 'package $(buildConfiguration) production artefacts'
@@ -106,9 +107,6 @@ stages:
           verbosityPack: Minimal
           outputDir: '$(build.artifactStagingDirectory)'
 
-    - job: 'Push'
-      displayName: 'push nuget artefacts to package feeds'
-      steps:
       - task: DotNetCoreCLI@2
         displayName: 'push packages to feed'
         inputs:
