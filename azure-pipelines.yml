@@ -61,9 +61,6 @@ stages:
           packDirectory: '$(build.artifactStagingDirectory)'
           arguments: '-c $(buildConfiguration) /p:Version=$(Build.BuildNumber)'
 
-    - job: 'Test'
-      displayName: 'test artefacts'
-      steps:
       - task: DotNetCoreCLI@2
         displayName: run test projects
         inputs:
@@ -72,9 +69,6 @@ stages:
           publishTestResults: true
           arguments: '--no-build -c $(buildConfiguration)'
 
-    - job: 'Publish'
-      displayName: 'publish artefacts'
-      steps:
       - task: DotNetCoreCLI@2
         displayName: publish build artifacts
         inputs:
@@ -83,10 +77,6 @@ stages:
           publishWebProjects: false
           arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)'
 
-
-    - job: 'Package'
-      displayName: 'package and push nuget artefacts'
-      steps:
       - task: DotNetCoreCLI@2
         displayName: 'package $(buildConfiguration) pre-release artefacts'
         condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
